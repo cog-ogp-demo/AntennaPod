@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import de.danoeh.antennapod.model.feed.Transcript;
 
@@ -89,6 +90,30 @@ public class SrtTranscriptParserTest {
         type = "unknown";
         result = TranscriptParser.parse(srtStr, type);
         assertEquals(result, null);
+    }
+
+    @Test
+    public void testParseBodyWithColons() {
+        String srt = "1\n"
+                + "00:00:00,000 --> 00:00:50,730\n"
+                + "Alice: Visit https://example.com for details\n";
+        Transcript result = SrtTranscriptParser.parse(srt);
+        assertNotNull(result);
+        assertEquals("Alice", result.getSegmentAtTime(0L).getSpeaker());
+        assertEquals("Visit https://example.com for details",
+                result.getSegmentAtTime(0L).getWords());
+    }
+
+    @Test
+    public void testParseTimingLineWithoutBody() {
+        String srt = "1\n"
+                + "00:00:00,000 --> 00:00:50,730\n"
+                + "Some text\n\n"
+                + "2\n"
+                + "00:00:50,730 --> 00:00:51,000\n";
+        Transcript result = SrtTranscriptParser.parse(srt);
+        assertNotNull(result);
+        assertEquals("Some text", result.getSegmentAtTime(0L).getWords());
     }
 }
 
