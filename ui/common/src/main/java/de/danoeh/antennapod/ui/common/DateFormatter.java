@@ -2,6 +2,8 @@ package de.danoeh.antennapod.ui.common;
 
 import android.content.Context;
 
+import de.danoeh.antennapod.storage.preferences.UserPreferences;
+
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -26,6 +28,9 @@ public class DateFormatter {
         int format = android.text.format.DateUtils.FORMAT_ABBREV_ALL;
         if (withinLastYear) {
             format |= android.text.format.DateUtils.FORMAT_NO_YEAR;
+        }
+        if (UserPreferences.shouldShowDayOfWeek()) {
+            format |= android.text.format.DateUtils.FORMAT_SHOW_WEEKDAY;
         }
         return android.text.format.DateUtils.formatDateTime(context, date.getTime(), format);
     }
