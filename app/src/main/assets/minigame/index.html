@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Pod City</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: none; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; font-family: -apple-system, Roboto, "Segoe UI", sans-serif; }
+    #game { display: block; width: 100%; height: 100%; background: #2b2b2b; }
+
+    .hud { position: fixed; pointer-events: none; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.9); }
+    #topbar { top: 0; left: 0; right: 0; padding: 10px 14px; display: flex; justify-content: space-between; align-items: flex-start; }
+    #money { font-size: 22px; font-weight: 700; color: #7CFC9A; }
+    #stars { font-size: 20px; letter-spacing: 2px; color: #FFD23F; min-height: 24px; }
+    #mission { margin-top: 4px; font-size: 13px; opacity: 0.92; max-width: 60%; }
+    #speed { font-size: 12px; opacity: 0.8; text-align: right; }
+
+    .control { position: fixed; pointer-events: auto; }
+    /* Joystick */
+    #stickZone { left: 0; bottom: 0; width: 45%; height: 55%; }
+    #stickBase { position: absolute; width: 130px; height: 130px; border-radius: 50%;
+        background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.25); display: none; }
+    #stickKnob { position: absolute; width: 60px; height: 60px; border-radius: 50%;
+        background: rgba(255,255,255,0.35); border: 2px solid rgba(255,255,255,0.5); display: none; }
+
+    /* Right side buttons */
+    #buttons { right: 18px; bottom: 22px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .btn { pointer-events: auto; width: 78px; height: 78px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
+        color: #fff; text-align: center; line-height: 1.1;
+        background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35); }
+    .btn:active, .btn.held { background: rgba(255,255,255,0.4); transform: scale(0.95); }
+    #btnGas { background: rgba(124,252,154,0.25); border-color: rgba(124,252,154,0.6); }
+    #btnBrake { background: rgba(255,107,107,0.22); border-color: rgba(255,107,107,0.55); }
+    #btnAction { background: rgba(255,210,63,0.22); border-color: rgba(255,210,63,0.55); position: fixed; right: 110px; bottom: 30px; width: 66px; height: 66px; }
+
+    #pause { position: fixed; top: 8px; right: 8px; pointer-events: auto; width: 40px; height: 40px;
+        border-radius: 8px; background: rgba(0,0,0,0.35); color: #fff; font-size: 18px;
+        display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.2); }
+
+    #overlay { position: fixed; inset: 0; background: rgba(10,10,12,0.86); color: #fff;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px; z-index: 50; }
+    #overlay h1 { font-size: 34px; margin-bottom: 6px; color: #FFD23F; letter-spacing: 1px; }
+    #overlay h2 { font-size: 16px; font-weight: 400; opacity: 0.85; margin-bottom: 20px; max-width: 460px; line-height: 1.5; }
+    #overlay .play { pointer-events: auto; background: #7CFC9A; color: #08210f; font-size: 18px; font-weight: 700;
+        padding: 14px 40px; border-radius: 30px; border: none; }
+    #overlay .hint { margin-top: 18px; font-size: 13px; opacity: 0.7; max-width: 460px; line-height: 1.6; }
+    .hidden { display: none !important; }
+
+    #toast { position: fixed; left: 50%; top: 14%; transform: translateX(-50%); pointer-events: none;
+        background: rgba(0,0,0,0.6); color: #fff; padding: 8px 16px; border-radius: 18px; font-size: 14px;
+        opacity: 0; transition: opacity 0.25s; max-width: 80%; text-align: center; }
+    #toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div class="hud" id="topbar">
+    <div>
+        <div id="money">$0</div>
+        <div id="stars"></div>
+        <div id="mission">Tap a mission marker to begin.</div>
+    </div>
+    <div id="speed"></div>
+</div>
+
+<div id="pause" class="control">II</div>
+
+<div id="stickZone" class="control">
+    <div id="stickBase"><div id="stickKnob"></div></div>
+</div>
+
+<div id="buttons" class="control">
+    <div id="btnGas" class="btn">GAS</div>
+    <div id="btnBrake" class="btn">BRAKE</div>
+</div>
+<div id="btnAction" class="btn control">ENTER</div>
+
+<div id="toast"></div>
+
+<div id="overlay">
+    <h1>POD CITY</h1>
+    <h2>A tiny open-world ride. Steal a ride, run the streets, pick up fares and cash out &mdash; just watch the stars, the cops don't like show-offs.</h2>
+    <button class="play" id="playBtn">DRIVE</button>
+    <div class="hint">
+        Left side: drag to steer / walk &middot; Right: GAS &amp; BRAKE<br>
+        ENTER/EXIT a car with the yellow button &middot; Drive into <span style="color:#FFD23F">yellow</span> to grab a fare,
+        then to <span style="color:#7CFC9A">green</span> to get paid.
+    </div>
+</div>
+
+<script>
+(function () {
+    "use strict";
+
+    var canvas = document.getElementById("game");
+    var ctx = canvas.getContext("2d");
+    var DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0, H = 0;
+
+    function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = Math.floor(W * DPR);
+        canvas.height = Math.floor(H * DPR);
+        canvas.style.width = W + "px";
+        canvas.style.height = H + "px";
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener("resize", resize);
+    resize();
+
+    // ---- World layout ----
+    var TILE = 220;          // size of one city block (road + building)
+    var ROAD = 70;           // road width
+    var GRID = 14;           // number of blocks per side
+    var WORLD = TILE * GRID;
+
+    function rand(a, b) { return a + Math.random() * (b - a); }
+    function randInt(a, b) { return Math.floor(rand(a, b + 1)); }
+    function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+    function dist(ax, ay, bx, by) { var dx = ax - bx, dy = ay - by; return Math.sqrt(dx * dx + dy * dy); }
+    function angLerp(a, b, t) {
+        var d = ((b - a + Math.PI) % (Math.PI * 2)) - Math.PI;
+        return a + d * t;
+    }
+
+    // Determine if a world point is on a road (between blocks)
+    function onRoad(x, y) {
+        var mx = ((x % TILE) + TILE) % TILE;
+        var my = ((y % TILE) + TILE) % TILE;
+        return mx < ROAD || my < ROAD;
+    }
+
+    // Snap a random spawn point onto a road lane
+    function roadPoint() {
+        var gx = randInt(0, GRID - 1);
+        var gy = randInt(0, GRID - 1);
+        if (Math.random() < 0.5) {
+            return { x: gx * TILE + ROAD / 2, y: gy * TILE + rand(0, TILE) };
+        }
+        return { x: gx * TILE + rand(0, TILE), y: gy * TILE + ROAD / 2 };
+    }
+
+    // Pre-generate building colors
+    var blocks = [];
+    var buildingColors = ["#3a3f4b", "#454b59", "#2f3540", "#4a4133", "#3b4a3f", "#42384a"];
+    for (var bx = 0; bx < GRID; bx++) {
+        for (var by = 0; by < GRID; by++) {
+            blocks.push({
+                x: bx * TILE + ROAD,
+                y: by * TILE + ROAD,
+                w: TILE - ROAD,
+                h: TILE - ROAD,
+                color: buildingColors[(bx * 7 + by * 3) % buildingColors.length],
+                roof: rand(0, 1)
+            });
+        }
+    }
+
+    // ---- Entities ----
+    var player = {
+        inCar: true,
+        x: ROAD / 2, y: TILE * 2, angle: 0,
+        speed: 0, footX: 0, footY: 0, footAngle: 0
+    };
+    player.x = ROAD / 2; player.y = TILE * 3;
+
+    var car = { x: player.x, y: player.y, angle: -Math.PI / 2, speed: 0, w: 26, h: 46, color: "#e84a4a" };
+    player.x = car.x; player.y = car.y;
+
+    var parkedCars = [];
+    var parkedColors = ["#4a90d9", "#f0a500", "#9b59b6", "#1abc9c", "#e67e22", "#bdc3c7"];
+    for (var i = 0; i < 16; i++) {
+        var p = roadPoint();
+        parkedCars.push({ x: p.x, y: p.y, angle: Math.random() < 0.5 ? 0 : Math.PI / 2,
+            speed: 0, w: 26, h: 46, color: parkedColors[i % parkedColors.length] });
+    }
+
+    var peds = [];
+    for (var j = 0; j < 26; j++) {
+        var pp = roadPoint();
+        peds.push({ x: pp.x, y: pp.y, angle: rand(0, Math.PI * 2), speed: rand(0.3, 0.9),
+            color: "hsl(" + randInt(0, 360) + ",45%,65%)", alive: true, t: rand(0, 100) });
+    }
+
+    var police = [];
+
+    // Mission markers
+    var fare = null;       // pickup marker
+    var dropoff = null;    // dropoff marker
+    var hasFare = false;
+
+    function newFare() {
+        fare = roadPoint();
+        dropoff = null;
+        hasFare = false;
+    }
+    newFare();
+
+    // ---- State ----
+    var state = {
+        running: false,
+        money: 0,
+        wanted: 0,         // 0..5
+        wantedHeat: 0,     // decays over time
+        lastTime: 0
+    };
+
+    // ---- Input ----
+    var input = { mx: 0, my: 0, stickActive: false, gas: false, brake: false };
+    var stickBase = document.getElementById("stickBase");
+    var stickKnob = document.getElementById("stickKnob");
+    var stickZone = document.getElementById("stickZone");
+    var stickId = null, stickOX = 0, stickOY = 0;
+
+    function setStick(cx, cy) {
+        stickBase.style.left = (cx - 65) + "px";
+        stickBase.style.top = (cy - 65) + "px";
+        stickBase.style.display = "block";
+        stickKnob.style.display = "block";
+        stickOX = cx; stickOY = cy;
+        moveStick(cx, cy);
+    }
+    function moveStick(cx, cy) {
+        var dx = cx - stickOX, dy = cy - stickOY;
+        var len = Math.sqrt(dx * dx + dy * dy);
+        var max = 55;
+        if (len > max) { dx = dx / len * max; dy = dy / len * max; }
+        stickKnob.style.left = (stickOX + dx - 30) + "px";
+        stickKnob.style.top = (stickOY + dy - 30) + "px";
+        input.mx = dx / max;
+        input.my = dy / max;
+        input.stickActive = len > 8;
+    }
+    function endStick() {
+        stickBase.style.display = "none";
+        stickKnob.style.display = "none";
+        input.mx = 0; input.my = 0; input.stickActive = false; stickId = null;
+    }
+
+    stickZone.addEventListener("touchstart", function (e) {
+        e.preventDefault();
+        var t = e.changedTouches[0];
+        stickId = t.identifier;
+        setStick(t.clientX, t.clientY);
+    }, { passive: false });
+    stickZone.addEventListener("touchmove", function (e) {
+        e.preventDefault();
+        for (var k = 0; k < e.changedTouches.length; k++) {
+            var t = e.changedTouches[k];
+            if (t.identifier === stickId) moveStick(t.clientX, t.clientY);
+        }
+    }, { passive: false });
+    stickZone.addEventListener("touchend", function (e) {
+        for (var k = 0; k < e.changedTouches.length; k++) {
+            if (e.changedTouches[k].identifier === stickId) endStick();
+        }
+    }, { passive: false });
+    stickZone.addEventListener("touchcancel", endStick, { passive: false });
+
+    // Mouse fallback (desktop testing)
+    var mouseDown = false;
+    stickZone.addEventListener("mousedown", function (e) { mouseDown = true; setStick(e.clientX, e.clientY); });
+    window.addEventListener("mousemove", function (e) { if (mouseDown) moveStick(e.clientX, e.clientY); });
+    window.addEventListener("mouseup", function () { if (mouseDown) { mouseDown = false; endStick(); } });
+
+    function bindHold(id, prop) {
+        var el = document.getElementById(id);
+        function on(e) { e.preventDefault(); input[prop] = true; el.classList.add("held"); }
+        function off(e) { e.preventDefault(); input[prop] = false; el.classList.remove("held"); }
+        el.addEventListener("touchstart", on, { passive: false });
+        el.addEventListener("touchend", off, { passive: false });
+        el.addEventListener("touchcancel", off, { passive: false });
+        el.addEventListener("mousedown", on);
+        el.addEventListener("mouseup", off);
+        el.addEventListener("mouseleave", off);
+    }
+    bindHold("btnGas", "gas");
+    bindHold("btnBrake", "brake");
+
+    var btnAction = document.getElementById("btnAction");
+    function doAction(e) { if (e) e.preventDefault(); toggleCar(); }
+    btnAction.addEventListener("touchstart", doAction, { passive: false });
+    btnAction.addEventListener("mousedown", doAction);
+
+    // Keyboard (desktop testing)
+    var keys = {};
+    window.addEventListener("keydown", function (e) {
+        keys[e.key.toLowerCase()] = true;
+        if (e.key.toLowerCase() === "e" || e.key === "Enter") toggleCar();
+    });
+    window.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
+
+    function toggleCar() {
+        if (!state.running) return;
+        if (player.inCar) {
+            player.inCar = false;
+            player.footX = car.x - Math.sin(car.angle) * 30;
+            player.footY = car.y + Math.cos(car.angle) * 30;
+            player.footAngle = car.angle;
+            car.speed = 0;
+            btnAction.textContent = "ENTER";
+        } else {
+            // enter nearest car within range (the player car or a parked one)
+            var target = car;
+            var best = dist(player.footX, player.footY, car.x, car.y);
+            for (var c = 0; c < parkedCars.length; c++) {
+                var d = dist(player.footX, player.footY, parkedCars[c].x, parkedCars[c].y);
+                if (d < best) { best = d; target = parkedCars[c]; }
+            }
+            if (best < 55) {
+                if (target !== car) {
+                    // swap: take over the parked car, leave old one parked
+                    var oldColor = car.color;
+                    parkedCars.push({ x: car.x, y: car.y, angle: car.angle, speed: 0, w: 26, h: 46, color: oldColor });
+                    var idx = parkedCars.indexOf(target);
+                    if (idx >= 0) parkedCars.splice(idx, 1);
+                    car.x = target.x; car.y = target.y; car.angle = target.angle; car.color = target.color; car.speed = 0;
+                }
+                player.inCar = true;
+                btnAction.textContent = "EXIT";
+            } else {
+                toast("No car nearby");
+            }
+        }
+    }
+
+    // ---- Toast ----
+    var toastEl = document.getElementById("toast");
+    var toastTimer = null;
+    function toast(msg) {
+        toastEl.textContent = msg;
+        toastEl.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 1600);
+    }
+
+    // ---- Wanted ----
+    function addHeat(amount) {
+        state.wantedHeat = Math.min(state.wantedHeat + amount, 100);
+        var newLevel = clamp(Math.ceil(state.wantedHeat / 20), 0, 5);
+        if (newLevel > state.wanted) {
+            state.wanted = newLevel;
+            spawnPolice();
+            toast("Wanted level up!");
+        }
+        state.wanted = newLevel;
+    }
+    function spawnPolice() {
+        var count = state.wanted;
+        while (police.length < count) {
+            var p = roadPoint();
+            // spawn away from player
+            if (dist(p.x, p.y, car.x, car.y) < 400) { p = roadPoint(); }
+            police.push({ x: p.x, y: p.y, angle: 0, speed: 0, w: 26, h: 46, color: "#2d6cdf" });
+        }
+    }
+
+    // ---- Update ----
+    function update(dt) {
+        var px, py;
+        if (player.inCar) {
+            updateCar(car, dt, true);
+            px = car.x; py = car.y;
+        } else {
+            updateFoot(dt);
+            px = player.footX; py = player.footY;
+        }
+
+        // Wanted heat decay
+        if (state.wantedHeat > 0) {
+            state.wantedHeat -= dt * 2.2;
+            if (state.wantedHeat < 0) state.wantedHeat = 0;
+            var lvl = clamp(Math.ceil(state.wantedHeat / 20), 0, 5);
+            if (lvl < state.wanted) {
+                state.wanted = lvl;
+                if (state.wanted === 0) { police.length = 0; toast("You lost the cops"); }
+            }
+        }
+
+        updatePeds(dt, px, py);
+        updatePolice(dt);
+        checkMissions(px, py);
+        updateHud();
+    }
+
+    function updateCar(c, dt, isPlayer) {
+        var steer = 0, throttle = 0;
+        if (isPlayer) {
+            if (input.stickActive) steer = input.mx;
+            if (keys["a"] || keys["arrowleft"]) steer = -1;
+            if (keys["d"] || keys["arrowright"]) steer = 1;
+            if (input.gas || keys["w"] || keys["arrowup"]) throttle = 1;
+            if (input.brake || keys["s"] || keys["arrowdown"]) throttle = -1;
+        }
+        var maxSpeed = 260, accel = 220, friction = 110;
+        if (throttle > 0) c.speed += accel * dt;
+        else if (throttle < 0) c.speed -= accel * 1.3 * dt;
+        else {
+            if (c.speed > 0) c.speed = Math.max(0, c.speed - friction * dt);
+            else c.speed = Math.min(0, c.speed + friction * dt);
+        }
+        c.speed = clamp(c.speed, -120, maxSpeed);
+
+        var steerPower = 2.4 * clamp(Math.abs(c.speed) / 90, 0, 1);
+        c.angle += steer * steerPower * dt * (c.speed >= 0 ? 1 : -1);
+
+        var nx = c.x + Math.sin(c.angle) * c.speed * dt;
+        var ny = c.y - Math.cos(c.angle) * c.speed * dt;
+
+        // building collision: keep cars roughly on roads (soft)
+        if (!onRoad(nx, ny) && isPlayer) {
+            c.speed *= 0.5;
+            nx = c.x + Math.sin(c.angle) * c.speed * dt * 0.3;
+            ny = c.y - Math.cos(c.angle) * c.speed * dt * 0.3;
+        }
+        c.x = clamp(nx, 10, WORLD - 10);
+        c.y = clamp(ny, 10, WORLD - 10);
+
+        // run over pedestrians
+        if (isPlayer && Math.abs(c.speed) > 40) {
+            for (var i = 0; i < peds.length; i++) {
+                if (peds[i].alive && dist(c.x, c.y, peds[i].x, peds[i].y) < 22) {
+                    peds[i].alive = false;
+                    addHeat(28);
+                    toast("Hit and run! +heat");
+                }
+            }
+        }
+    }
+
+    function updateFoot(dt) {
+        var vx = 0, vy = 0;
+        if (input.stickActive) { vx = input.mx; vy = input.my; }
+        if (keys["a"] || keys["arrowleft"]) vx = -1;
+        if (keys["d"] || keys["arrowright"]) vx = 1;
+        if (keys["w"] || keys["arrowup"]) vy = -1;
+        if (keys["s"] || keys["arrowdown"]) vy = 1;
+        var sp = 115;
+        var len = Math.sqrt(vx * vx + vy * vy);
+        if (len > 1) { vx /= len; vy /= len; }
+        if (len > 0.05) player.footAngle = Math.atan2(vy, vx);
+        player.footX = clamp(player.footX + vx * sp * dt, 6, WORLD - 6);
+        player.footY = clamp(player.footY + vy * sp * dt, 6, WORLD - 6);
+    }
+
+    function updatePeds(dt, px, py) {
+        for (var i = 0; i < peds.length; i++) {
+            var p = peds[i];
+            if (!p.alive) continue;
+            p.t -= dt;
+            if (p.t <= 0) { p.angle = rand(0, Math.PI * 2); p.t = rand(1, 4); }
+            // flee from fast nearby car
+            if (player.inCar && Math.abs(car.speed) > 60 && dist(p.x, p.y, px, py) < 90) {
+                p.angle = Math.atan2(p.y - py, p.x - px);
+                p.t = 1.2;
+            }
+            var nx = p.x + Math.cos(p.angle) * p.speed * 30 * dt;
+            var ny = p.y + Math.sin(p.angle) * p.speed * 30 * dt;
+            if (!onRoad(nx, ny)) { p.angle += Math.PI / 2; }
+            else { p.x = clamp(nx, 4, WORLD - 4); p.y = clamp(ny, 4, WORLD - 4); }
+        }
+    }
+
+    function updatePolice(dt) {
+        var tx = player.inCar ? car.x : player.footX;
+        var ty = player.inCar ? car.y : player.footY;
+        for (var i = 0; i < police.length; i++) {
+            var c = police[i];
+            var desired = Math.atan2(tx - c.x, -(ty - c.y));
+            c.angle = angLerp(c.angle, desired, clamp(dt * 2.5, 0, 1));
+            var d = dist(c.x, c.y, tx, ty);
+            var target = d > 60 ? 230 : 0;
+            if (c.speed < target) c.speed += 200 * dt; else c.speed -= 220 * dt;
+            c.speed = clamp(c.speed, 0, 240);
+            c.x = clamp(c.x + Math.sin(c.angle) * c.speed * dt, 10, WORLD - 10);
+            c.y = clamp(c.y - Math.cos(c.angle) * c.speed * dt, 10, WORLD - 10);
+            // bust
+            if (d < 26) {
+                if (player.inCar && Math.abs(car.speed) > 120) {
+                    // ram a cop -> more heat
+                    addHeat(6 * dt * 10);
+                } else {
+                    busted();
+                    return;
+                }
+            }
+        }
+    }
+
+    function busted() {
+        var fine = Math.min(state.money, 250 + state.wanted * 100);
+        state.money -= fine;
+        if (state.money < 0) state.money = 0;
+        state.wanted = 0; state.wantedHeat = 0; police.length = 0;
+        hasFare = false; newFare();
+        // respawn
+        var sp = roadPoint();
+        car.x = sp.x; car.y = sp.y; car.speed = 0;
+        player.inCar = true; btnAction.textContent = "EXIT";
+        toast("BUSTED! Lost $" + fine);
+    }
+
+    function checkMissions(px, py) {
+        if (!hasFare && fare && dist(px, py, fare.x, fare.y) < 36) {
+            hasFare = true;
+            dropoff = roadPoint();
+            while (dist(dropoff.x, dropoff.y, fare.x, fare.y) < 600) dropoff = roadPoint();
+            fare = null;
+            toast("Fare picked up! Drive to the green marker.");
+        } else if (hasFare && dropoff && dist(px, py, dropoff.x, dropoff.y) < 36) {
+            var pay = 200 + randInt(0, 250);
+            state.money += pay;
+            toast("Fare delivered! +$" + pay);
+            hasFare = false; dropoff = null;
+            newFare();
+        }
+    }
+
+    // ---- Render ----
+    var cam = { x: 0, y: 0 };
+    function render() {
+        var px = player.inCar ? car.x : player.footX;
+        var py = player.inCar ? car.y : player.footY;
+        cam.x = px - W / 2;
+        cam.y = py - H / 2;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // ground
+        ctx.fillStyle = "#23262e";
+        ctx.fillRect(0, 0, W, H);
+
+        // roads: fill whole visible area as asphalt where on road by drawing lanes
+        drawRoads();
+
+        // buildings
+        for (var i = 0; i < blocks.length; i++) {
+            var b = blocks[i];
+            var sx = b.x - cam.x, sy = b.y - cam.y;
+            if (sx > W || sy > H || sx + b.w < 0 || sy + b.h < 0) continue;
+            ctx.fillStyle = b.color;
+            ctx.fillRect(sx, sy, b.w, b.h);
+            ctx.fillStyle = "rgba(0,0,0,0.18)";
+            ctx.fillRect(sx, sy, b.w, 6);
+            ctx.fillStyle = "rgba(255,255,255,0.05)";
+            ctx.fillRect(sx + 6, sy + 12, b.w - 12, b.h - 18);
+        }
+
+        // markers
+        if (fare) drawMarker(fare.x, fare.y, "#FFD23F");
+        if (hasFare && dropoff) drawMarker(dropoff.x, dropoff.y, "#7CFC9A");
+
+        // parked cars
+        for (var c = 0; c < parkedCars.length; c++) drawCar(parkedCars[c]);
+        // peds
+        for (var p = 0; p < peds.length; p++) {
+            if (!peds[p].alive) continue;
+            var ex = peds[p].x - cam.x, ey = peds[p].y - cam.y;
+            if (ex < -10 || ey < -10 || ex > W + 10 || ey > H + 10) continue;
+            ctx.fillStyle = peds[p].color;
+            ctx.beginPath();
+            ctx.arc(ex, ey, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        // police
+        for (var k = 0; k < police.length; k++) { drawCar(police[k]); drawSiren(police[k]); }
+
+        // player
+        if (player.inCar) drawCar(car, true);
+        else drawPedestrian(player.footX, player.footY, player.footAngle, "#ffd23f");
+
+        drawMinimap();
+    }
+
+    function drawRoads() {
+        var startGX = Math.floor(cam.x / TILE) - 1;
+        var endGX = Math.floor((cam.x + W) / TILE) + 1;
+        var startGY = Math.floor(cam.y / TILE) - 1;
+        var endGY = Math.floor((cam.y + H) / TILE) + 1;
+        ctx.fillStyle = "#3a3d44";
+        for (var gx = startGX; gx <= endGX; gx++) {
+            var rx = gx * TILE - cam.x;
+            ctx.fillRect(rx, 0, ROAD, H);
+        }
+        for (var gy = startGY; gy <= endGY; gy++) {
+            var ry = gy * TILE - cam.y;
+            ctx.fillRect(0, ry, W, ROAD);
+        }
+        // lane dashes
+        ctx.strokeStyle = "rgba(255,210,63,0.5)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([14, 16]);
+        ctx.beginPath();
+        for (var gx2 = startGX; gx2 <= endGX; gx2++) {
+            var lx = gx2 * TILE - cam.x + ROAD / 2;
+            ctx.moveTo(lx, 0); ctx.lineTo(lx, H);
+        }
+        for (var gy2 = startGY; gy2 <= endGY; gy2++) {
+            var ly = gy2 * TILE - cam.y + ROAD / 2;
+            ctx.moveTo(0, ly); ctx.lineTo(W, ly);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    function drawCar(c, isPlayer) {
+        var sx = c.x - cam.x, sy = c.y - cam.y;
+        if (sx < -60 || sy < -60 || sx > W + 60 || sy > H + 60) return;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(c.angle);
+        ctx.fillStyle = "rgba(0,0,0,0.35)";
+        ctx.fillRect(-c.w / 2 + 2, -c.h / 2 + 3, c.w, c.h);
+        ctx.fillStyle = c.color;
+        roundRect(-c.w / 2, -c.h / 2, c.w, c.h, 6);
+        ctx.fill();
+        // windshield
+        ctx.fillStyle = "rgba(180,220,255,0.55)";
+        ctx.fillRect(-c.w / 2 + 4, -c.h / 2 + 6, c.w - 8, 10);
+        ctx.fillStyle = "rgba(20,30,40,0.5)";
+        ctx.fillRect(-c.w / 2 + 4, c.h / 2 - 14, c.w - 8, 8);
+        ctx.restore();
+    }
+
+    function drawSiren(c) {
+        var sx = c.x - cam.x, sy = c.y - cam.y;
+        var on = Math.floor(performance.now() / 250) % 2 === 0;
+        ctx.fillStyle = on ? "#ff3b3b" : "#3b6bff";
+        ctx.beginPath(); ctx.arc(sx, sy, 4, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function drawPedestrian(x, y, angle, color) {
+        var sx = x - cam.x, sy = y - cam.y;
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.beginPath(); ctx.arc(1, 2, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(0, 0, 7, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = "rgba(0,0,0,0.5)";
+        ctx.fillRect(Math.cos(angle) * 4 - 1.5, Math.sin(angle) * 4 - 1.5, 3, 3);
+        ctx.restore();
+    }
+
+    function drawMarker(x, y, color) {
+        var sx = x - cam.x, sy = y - cam.y;
+        var pulse = 1 + Math.sin(performance.now() / 250) * 0.15;
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = color;
+        ctx.beginPath(); ctx.arc(sx, sy, 30 * pulse, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy - 24);
+        ctx.lineTo(sx + 12, sy - 6);
+        ctx.lineTo(sx - 12, sy - 6);
+        ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.arc(sx, sy - 24, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+    }
+
+    function roundRect(x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    // Minimap
+    var MM = 110, MMP = 12;
+    function drawMinimap() {
+        var ox = W - MM - MMP, oy = H - MM - MMP - 130;
+        if (oy < 60) oy = 60;
+        var scale = MM / WORLD;
+        ctx.save();
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = "rgba(0,0,0,0.55)";
+        roundRect(ox - 4, oy - 4, MM + 8, MM + 8, 8); ctx.fill();
+        ctx.beginPath();
+        roundRect(ox, oy, MM, MM, 6); ctx.clip();
+        ctx.fillStyle = "#2c2f36"; ctx.fillRect(ox, oy, MM, MM);
+        // markers
+        if (fare) { ctx.fillStyle = "#FFD23F"; dot(ox + fare.x * scale, oy + fare.y * scale, 3); }
+        if (hasFare && dropoff) { ctx.fillStyle = "#7CFC9A"; dot(ox + dropoff.x * scale, oy + dropoff.y * scale, 3); }
+        for (var k = 0; k < police.length; k++) { ctx.fillStyle = "#5b8bff"; dot(ox + police[k].x * scale, oy + police[k].y * scale, 2); }
+        var px = player.inCar ? car.x : player.footX;
+        var py = player.inCar ? car.y : player.footY;
+        ctx.fillStyle = "#fff"; dot(ox + px * scale, oy + py * scale, 3);
+        ctx.restore();
+    }
+    function dot(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
+
+    // ---- HUD ----
+    var moneyEl = document.getElementById("money");
+    var starsEl = document.getElementById("stars");
+    var missionEl = document.getElementById("mission");
+    var speedEl = document.getElementById("speed");
+    function updateHud() {
+        moneyEl.textContent = "$" + state.money;
+        var s = "";
+        for (var i = 0; i < state.wanted; i++) s += "\u2605";
+        starsEl.textContent = s;
+        if (hasFare) missionEl.textContent = "Drop the fare at the green marker.";
+        else missionEl.textContent = "Pick up a fare at the yellow marker.";
+        var spd = player.inCar ? Math.abs(Math.round(car.speed)) : 0;
+        speedEl.textContent = (player.inCar ? spd + " km/h" : "on foot");
+    }
+
+    // ---- Loop ----
+    function loop(now) {
+        if (!state.running) return;
+        var dt = (now - state.lastTime) / 1000;
+        state.lastTime = now;
+        if (dt > 0.05) dt = 0.05;
+        update(dt);
+        render();
+        requestAnimationFrame(loop);
+    }
+
+    // ---- Overlay / pause ----
+    var overlay = document.getElementById("overlay");
+    var playBtn = document.getElementById("playBtn");
+    function start() {
+        overlay.classList.add("hidden");
+        state.running = true;
+        state.lastTime = performance.now();
+        btnAction.textContent = player.inCar ? "EXIT" : "ENTER";
+        requestAnimationFrame(loop);
+    }
+    playBtn.addEventListener("click", start);
+    playBtn.addEventListener("touchstart", function (e) { e.preventDefault(); start(); }, { passive: false });
+
+    var pauseBtn = document.getElementById("pause");
+    pauseBtn.addEventListener("click", function () {
+        if (state.running) {
+            state.running = false;
+            overlay.querySelector("h1").textContent = "PAUSED";
+            overlay.querySelector("h2").textContent = "Take a breather. Your city will be waiting.";
+            playBtn.textContent = "RESUME";
+            overlay.classList.remove("hidden");
+        }
+    });
+
+    // initial render so it doesn't look blank behind overlay
+    render();
+})();
+</script>
+</body>
+</html>
