@@ -2,10 +2,19 @@ package de.danoeh.antennapod.ui.common;
 
 import android.content.Context;
 import android.content.res.Configuration;
+import android.os.Build;
 import androidx.annotation.StyleRes;
+import androidx.core.content.ContextCompat;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 
 public abstract class ThemeSwitcher {
+    public static int getDynamicColorFingerprint(Context context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !UserPreferences.getIsThemeColorTinted()) {
+            return 0;
+        }
+        return ContextCompat.getColor(context, android.R.color.system_accent1_500);
+    }
+
     @StyleRes
     public static int getNoTitleTheme(Context context) {
         boolean dynamic = UserPreferences.getIsThemeColorTinted();

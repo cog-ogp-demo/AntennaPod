@@ -118,11 +118,13 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
     private OnBackPressedCallback openDefaultPageBackPressedCallback;
     private final RecyclerView.RecycledViewPool recycledViewPool = new RecyclerView.RecycledViewPool();
     private int lastTheme = 0;
+    private int lastDynamicColors = 0;
     private Insets systemBarInsets = Insets.NONE;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         lastTheme = ThemeSwitcher.getNoTitleTheme(this);
+        lastDynamicColors = ThemeSwitcher.getDynamicColorFingerprint(this);
         setTheme(lastTheme);
         if (savedInstanceState != null) {
             ensureGeneratedViewIdGreaterThan(savedInstanceState.getInt(KEY_GENERATED_VIEW_ID, 0));
@@ -568,7 +570,7 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
         setNavDrawerSize();
 
         @StyleRes int requiredTheme = ThemeSwitcher.getNoTitleTheme(this);
-        if (requiredTheme != lastTheme) {
+        if (requiredTheme != lastTheme || lastDynamicColors != ThemeSwitcher.getDynamicColorFingerprint(this)) {
             restartActivity();
         }
     }
@@ -615,6 +617,7 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
 
         boolean hasBottomNavigation = bottomNavigation != null;
         if (lastTheme != ThemeSwitcher.getNoTitleTheme(this)
+                || lastDynamicColors != ThemeSwitcher.getDynamicColorFingerprint(this)
                 || hasBottomNavigation != UserPreferences.isBottomNavigationEnabled()) {
             restartActivity();
         }
@@ -627,6 +630,7 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         lastTheme = ThemeSwitcher.getNoTitleTheme(this); // Don't recreate activity when a result is pending
+        lastDynamicColors = ThemeSwitcher.getDynamicColorFingerprint(this);
     }
 
     @Override
