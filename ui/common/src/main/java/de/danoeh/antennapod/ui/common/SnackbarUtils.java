@@ -48,7 +48,7 @@ public final class SnackbarUtils {
                 case MotionEvent.ACTION_DOWN:
                     downRawX = event.getRawX();
                     viewWidth = Math.max(1, view.getWidth());
-                    return false;
+                    return true;
                 case MotionEvent.ACTION_MOVE: {
                     float deltaX = event.getRawX() - downRawX;
                     if (!swiping && Math.abs(deltaX) > touchSlop) {
@@ -61,14 +61,13 @@ public final class SnackbarUtils {
                     if (swiping) {
                         view.setTranslationX(deltaX);
                         view.setAlpha(Math.max(0f, 1f - Math.abs(deltaX) / viewWidth));
-                        return true;
                     }
-                    return false;
+                    return true;
                 }
                 case MotionEvent.ACTION_UP:
                 case MotionEvent.ACTION_CANCEL: {
                     if (!swiping) {
-                        return false;
+                        return true;
                     }
                     swiping = false;
                     float deltaX = event.getRawX() - downRawX;
