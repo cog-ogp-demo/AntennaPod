@@ -51,7 +51,7 @@ public final class ClipboardUtils {
         clipboard.setPrimaryClip(ClipData.newPlainText(label, text));
 
         if (Build.VERSION.SDK_INT < 32) {
-            Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show();
+            SnackbarUtils.make(view, message, Snackbar.LENGTH_SHORT).show();
         }
     }
 

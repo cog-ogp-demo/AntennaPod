@@ -21,6 +21,8 @@ import androidx.preference.Preference;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
+
 import de.danoeh.antennapod.net.sync.serviceinterface.SynchronizationProvider;
 import de.danoeh.antennapod.net.sync.serviceinterface.SynchronizationQueue;
 import de.danoeh.antennapod.ui.preferences.R;
@@ -103,7 +105,7 @@ public class SynchronizationPreferencesFragment extends AnimatedPreferenceFragme
         findPreference(PREFERENCE_LOGOUT).setOnPreferenceClickListener(preference -> {
             SynchronizationCredentials.clear();
             SynchronizationQueue.getInstance().clear();
-            Snackbar.make(getView(), R.string.pref_synchronization_logout_toast, Snackbar.LENGTH_LONG).show();
+            SnackbarUtils.make(getView(), R.string.pref_synchronization_logout_toast, Snackbar.LENGTH_LONG).show();
             SynchronizationSettings.setSelectedSyncProvider(null);
             updateScreen();
             return true;
