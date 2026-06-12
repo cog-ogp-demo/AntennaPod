@@ -44,9 +44,7 @@ public class PodcastApp extends Application {
             registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
                 @Override
                 public void onActivityCreated(@NonNull Activity activity, @Nullable Bundle savedInstanceState) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        lastAccentColor = activity.getColor(android.R.color.system_accent1_500);
-                    }
+                    lastAccentColor = activity.getColor(android.R.color.system_accent1_500);
                 }
 
                 @Override
@@ -55,12 +53,13 @@ public class PodcastApp extends Application {
 
                 @Override
                 public void onActivityResumed(@NonNull Activity activity) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && UserPreferences.getIsThemeColorTinted()) {
-                        int currentColor = activity.getColor(android.R.color.system_accent1_500);
-                        if (currentColor != lastAccentColor) {
-                            lastAccentColor = currentColor;
-                            activity.recreate();
-                        }
+                    if (!UserPreferences.getIsThemeColorTinted()) {
+                        return;
+                    }
+                    int currentColor = activity.getColor(android.R.color.system_accent1_500);
+                    if (currentColor != lastAccentColor) {
+                        lastAccentColor = currentColor;
+                        activity.recreate();
                     }
                 }
 
