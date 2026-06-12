@@ -27,6 +27,7 @@ import androidx.core.util.Consumer;
 import com.google.android.material.snackbar.Snackbar;
 
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
 import de.danoeh.antennapod.event.MessageEvent;
 import de.danoeh.antennapod.ui.MenuItemUtils;
 import de.danoeh.antennapod.ui.common.Converter;
@@ -155,7 +156,7 @@ public class ShownotesWebView extends WebView implements View.OnLongClickListene
                     .getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(clipData);
             if (Build.VERSION.SDK_INT < 32) {
-                Snackbar s = Snackbar.make(this, R.string.copied_to_clipboard, Snackbar.LENGTH_LONG);
+                Snackbar s = SnackbarHelper.make(this, R.string.copied_to_clipboard, Snackbar.LENGTH_LONG);
                 s.getView().setElevation(100);
                 s.show();
             }

@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.StringRes;
 
 import com.google.android.material.snackbar.Snackbar;
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
 
 /**
  * Utilities for commonly used clipboard functionality.
@@ -51,7 +52,7 @@ public final class ClipboardUtils {
         clipboard.setPrimaryClip(ClipData.newPlainText(label, text));
 
         if (Build.VERSION.SDK_INT < 32) {
-            Snackbar.make(view, message, Snackbar.LENGTH_SHORT).show();
+            SnackbarHelper.make(view, message, Snackbar.LENGTH_SHORT).show();
         }
     }
 

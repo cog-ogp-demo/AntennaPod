@@ -22,6 +22,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
 import de.danoeh.antennapod.databinding.EditTextDialogBinding;
 import de.danoeh.antennapod.databinding.OnlinefeedviewActivityBinding;
 import de.danoeh.antennapod.event.MessageEvent;
@@ -493,7 +494,8 @@ public class OnlineFeedViewActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(MessageEvent event) {
         Log.d(TAG, "onEvent(" + event + ")");
-        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), event.message, Snackbar.LENGTH_LONG);
+        Snackbar snackbar = SnackbarHelper.make(findViewById(android.R.id.content),
+                event.message, Snackbar.LENGTH_LONG);
         snackbar.show();
         if (event.action != null) {
             snackbar.setAction(event.actionText, v -> event.action.accept(this));
