@@ -10,6 +10,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.ui.common.IntentUtils;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.ui.preferences.BuildConfig;
 import de.danoeh.antennapod.ui.preferences.R;
 import de.danoeh.antennapod.ui.preferences.screen.AnimatedPreferenceFragment;
@@ -40,7 +41,7 @@ public class AboutFragment extends AnimatedPreferenceFragment {
                     findPreference("about_version").getSummary());
             clipboard.setPrimaryClip(clip);
             if (Build.VERSION.SDK_INT <= 32) {
-                Snackbar.make(getView(), R.string.copied_to_clipboard, Snackbar.LENGTH_SHORT).show();
+                SnackbarUtils.make(getView(), R.string.copied_to_clipboard, Snackbar.LENGTH_SHORT).show();
             }
             return true;
         });

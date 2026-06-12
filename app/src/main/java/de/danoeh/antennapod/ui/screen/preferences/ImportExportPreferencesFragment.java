@@ -24,6 +24,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import androidx.core.app.ShareCompat;
 import androidx.core.content.FileProvider;
 import com.google.android.material.snackbar.Snackbar;
+
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.activity.OpmlImportActivity;
 import de.danoeh.antennapod.storage.database.DBReader;
@@ -137,8 +139,8 @@ public class ImportExportPreferencesFragment extends AnimatedPreferenceFragment 
                     try {
                         chooseOpmlImportPathLauncher.launch("*/*");
                     } catch (ActivityNotFoundException e) {
-                        Snackbar.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
-                                .show();
+                        SnackbarUtils.make(getView(), R.string.unable_to_start_system_file_manager,
+                                Snackbar.LENGTH_LONG).show();
                     }
                     return true;
                 });
@@ -152,8 +154,8 @@ public class ImportExportPreferencesFragment extends AnimatedPreferenceFragment 
                     try {
                         backupDatabaseLauncher.launch(dateStampFilename(DATABASE_EXPORT_FILENAME));
                     } catch (ActivityNotFoundException e) {
-                        Snackbar.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
-                                .show();
+                        SnackbarUtils.make(getView(), R.string.unable_to_start_system_file_manager,
+                                Snackbar.LENGTH_LONG).show();
                     }
                     return true;
                 });
@@ -165,8 +167,8 @@ public class ImportExportPreferencesFragment extends AnimatedPreferenceFragment 
                         try {
                             automaticBackupLauncher.launch(null);
                         } catch (ActivityNotFoundException e) {
-                            Snackbar.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
-                                    .show();
+                            SnackbarUtils.make(getView(), R.string.unable_to_start_system_file_manager,
+                                    Snackbar.LENGTH_LONG).show();
                         }
                         return false;
                     } else {
@@ -200,7 +202,7 @@ public class ImportExportPreferencesFragment extends AnimatedPreferenceFragment 
             try {
                 restoreDatabaseLauncher.launch(intent);
             } catch (ActivityNotFoundException e) {
-                Snackbar.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
+                SnackbarUtils.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
                         .show();
             }
         });
@@ -219,7 +221,7 @@ public class ImportExportPreferencesFragment extends AnimatedPreferenceFragment 
     }
 
     void showExportSuccessSnackbar(Uri uri, String mimeType) {
-        Snackbar.make(getView(), R.string.export_success_title, Snackbar.LENGTH_LONG)
+        SnackbarUtils.make(getView(), R.string.export_success_title, Snackbar.LENGTH_LONG)
                 .setAction(R.string.share_label, v ->
                         new ShareCompat.IntentBuilder(getContext())
                                 .setType(mimeType)
@@ -290,7 +292,7 @@ public class ImportExportPreferencesFragment extends AnimatedPreferenceFragment 
             result.launch(intentPickAction);
             return;
         } catch (ActivityNotFoundException e) {
-            Snackbar.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
+            SnackbarUtils.make(getView(), R.string.unable_to_start_system_file_manager, Snackbar.LENGTH_LONG)
                     .show();
         }
 

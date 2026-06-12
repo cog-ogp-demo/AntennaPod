@@ -15,6 +15,7 @@ import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
 import de.danoeh.antennapod.event.MessageEvent;
 import de.danoeh.antennapod.ui.common.Keyboard;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.ui.common.ToolbarActivity;
 import de.danoeh.antennapod.ui.preferences.databinding.SettingsActivityBinding;
 import de.danoeh.antennapod.ui.preferences.screen.AutoDownloadPreferencesFragment;
@@ -177,7 +178,7 @@ public class PreferenceActivity extends ToolbarActivity implements SearchPrefere
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(MessageEvent event) {
         Log.d(FRAGMENT_TAG, "onEvent(" + event + ")");
-        Snackbar s = Snackbar.make(binding.getRoot(), event.message, Snackbar.LENGTH_LONG);
+        Snackbar s = SnackbarUtils.make(binding.getRoot(), event.message, Snackbar.LENGTH_LONG);
         if (event.action != null) {
             s.setAction(event.actionText, v -> event.action.accept(this));
         }

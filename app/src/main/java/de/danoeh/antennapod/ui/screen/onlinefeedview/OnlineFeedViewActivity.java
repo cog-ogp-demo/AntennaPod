@@ -46,6 +46,7 @@ import de.danoeh.antennapod.storage.database.DBReader;
 import de.danoeh.antennapod.storage.database.DBWriter;
 import de.danoeh.antennapod.storage.database.FeedDatabaseWriter;
 import de.danoeh.antennapod.ui.appstartintent.MainActivityStarter;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.ui.common.ThemeSwitcher;
 import de.danoeh.antennapod.ui.common.ThemeUtils;
 import de.danoeh.antennapod.ui.preferences.screen.synchronization.AuthenticationDialog;
@@ -493,7 +494,7 @@ public class OnlineFeedViewActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(MessageEvent event) {
         Log.d(TAG, "onEvent(" + event + ")");
-        Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), event.message, Snackbar.LENGTH_LONG);
+        Snackbar snackbar = SnackbarUtils.make(findViewById(android.R.id.content), event.message, Snackbar.LENGTH_LONG);
         snackbar.show();
         if (event.action != null) {
             snackbar.setAction(event.actionText, v -> event.action.accept(this));

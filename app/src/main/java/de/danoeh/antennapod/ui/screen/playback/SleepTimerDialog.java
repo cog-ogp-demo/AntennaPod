@@ -50,6 +50,7 @@ import de.danoeh.antennapod.storage.preferences.SleepTimerPreferences;
 import de.danoeh.antennapod.storage.preferences.SleepTimerType;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 import de.danoeh.antennapod.ui.common.Converter;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.ui.common.ThemeUtils;
 import de.danoeh.antennapod.ui.screen.preferences.PreferenceActivity;
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -247,7 +248,7 @@ public class SleepTimerDialog extends BottomSheetDialogFragment {
             if (!PlaybackService.isRunning
                     || (!BuildConfig.USE_MEDIA3_PLAYBACK_SERVICE
                             && controller != null && controller.getStatus() != PlayerStatus.PLAYING)) {
-                Snackbar.make(viewBinding.getRoot(), R.string.no_media_playing_label, Snackbar.LENGTH_LONG).show();
+                SnackbarUtils.make(viewBinding.getRoot(), R.string.no_media_playing_label, Snackbar.LENGTH_LONG).show();
                 return;
             }
             try {
@@ -265,7 +266,8 @@ public class SleepTimerDialog extends BottomSheetDialogFragment {
                 Keyboard.hide(getActivity());
             } catch (NumberFormatException e) {
                 e.printStackTrace();
-                Snackbar.make(viewBinding.getRoot(), R.string.time_dialog_invalid_input, Snackbar.LENGTH_LONG).show();
+                SnackbarUtils.make(viewBinding.getRoot(), R.string.time_dialog_invalid_input,
+                        Snackbar.LENGTH_LONG).show();
             }
         });
         return viewBinding.getRoot();

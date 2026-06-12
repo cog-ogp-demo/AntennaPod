@@ -31,6 +31,7 @@ import de.danoeh.antennapod.event.MessageEvent;
 import de.danoeh.antennapod.ui.MenuItemUtils;
 import de.danoeh.antennapod.ui.common.Converter;
 import de.danoeh.antennapod.ui.common.IntentUtils;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.net.common.NetworkUtils;
 import de.danoeh.antennapod.ui.share.ShareUtils;
 import de.danoeh.antennapod.ui.cleaner.ShownotesCleaner;
@@ -155,7 +156,7 @@ public class ShownotesWebView extends WebView implements View.OnLongClickListene
                     .getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(clipData);
             if (Build.VERSION.SDK_INT < 32) {
-                Snackbar s = Snackbar.make(this, R.string.copied_to_clipboard, Snackbar.LENGTH_LONG);
+                Snackbar s = SnackbarUtils.make(this, R.string.copied_to_clipboard, Snackbar.LENGTH_LONG);
                 s.getView().setElevation(100);
                 s.show();
             }

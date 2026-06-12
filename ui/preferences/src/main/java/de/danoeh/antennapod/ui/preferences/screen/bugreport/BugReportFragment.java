@@ -29,6 +29,7 @@ import de.danoeh.antennapod.storage.preferences.UserPreferences;
 import de.danoeh.antennapod.ui.common.AnimatedFragment;
 import de.danoeh.antennapod.ui.common.ClipboardUtils;
 import de.danoeh.antennapod.ui.common.IntentUtils;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.ui.preferences.R;
 import de.danoeh.antennapod.ui.preferences.databinding.BugReportFragmentBinding;
 
@@ -188,12 +189,13 @@ public class BugReportFragment extends AnimatedFragment {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                Snackbar.make(viewBinding.getRoot(), R.string.log_file_share_exception, Snackbar.LENGTH_LONG).show();
+                SnackbarUtils.make(viewBinding.getRoot(), R.string.log_file_share_exception,
+                        Snackbar.LENGTH_LONG).show();
             }
         } catch (IOException e) {
             e.printStackTrace();
 
-            Snackbar.make(viewBinding.getRoot(), e.getMessage(), Snackbar.LENGTH_LONG).show();
+            SnackbarUtils.make(viewBinding.getRoot(), e.getMessage(), Snackbar.LENGTH_LONG).show();
         }
     }
 }

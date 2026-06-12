@@ -61,6 +61,7 @@ import de.danoeh.antennapod.ui.appstartintent.MainActivityStarter;
 import de.danoeh.antennapod.ui.appstartintent.MediaButtonStarter;
 import de.danoeh.antennapod.ui.common.IntentUtils;
 import de.danoeh.antennapod.ui.common.NavigationToolbarActivity;
+import de.danoeh.antennapod.ui.common.SnackbarUtils;
 import de.danoeh.antennapod.ui.common.ThemeSwitcher;
 import de.danoeh.antennapod.ui.common.ThemeUtils;
 import de.danoeh.antennapod.ui.discovery.DiscoveryFragment;
@@ -697,12 +698,12 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
         Log.d(TAG, "onEvent(" + event + ")");
         Snackbar snackbar;
         if (getBottomSheet().getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            snackbar = Snackbar.make(findViewById(android.R.id.content), event.message, Snackbar.LENGTH_LONG);
+            snackbar = SnackbarUtils.make(findViewById(android.R.id.content), event.message, Snackbar.LENGTH_LONG);
             if (findViewById(R.id.bottomNavigationView).getVisibility() == View.VISIBLE) {
                 snackbar.setAnchorView(findViewById(R.id.bottomNavigationView));
             }
         } else {
-            snackbar = Snackbar.make(findViewById(R.id.main_content_view), event.message, Snackbar.LENGTH_LONG);
+            snackbar = SnackbarUtils.make(findViewById(R.id.main_content_view), event.message, Snackbar.LENGTH_LONG);
             if (findViewById(R.id.audioplayerFragment).getVisibility() == View.VISIBLE) {
                 snackbar.setAnchorView(findViewById(R.id.audioplayerFragment));
             }
