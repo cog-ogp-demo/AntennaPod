@@ -322,6 +322,9 @@ public abstract class UserPreferences {
     }
 
     public static boolean shouldShowDayOfWeek() {
+        if (prefs == null) {
+            return false;
+        }
         return prefs.getBoolean(PREF_SHOW_DAY_OF_WEEK, false);
     }
 
