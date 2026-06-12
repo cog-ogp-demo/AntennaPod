@@ -10,6 +10,8 @@ import android.widget.FrameLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import de.danoeh.antennapod.ui.common.ThemeSwitcher;
+
 public class MiniGameActivity extends AppCompatActivity {
 
     private WebView webView;
@@ -17,6 +19,7 @@ public class MiniGameActivity extends AppCompatActivity {
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(ThemeSwitcher.getNoTitleTheme(this));
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 

@@ -283,8 +283,7 @@
             android:name=".activity.MiniGameActivity"
             android:label="@string/minigame_label"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|density|uiMode|keyboard|navigation"
-            android:exported="false"
-            android:theme="@style/Theme.AntennaPod.Splash" />
+            android:exported="false" />
 
         <provider
             android:authorities="@string/provider_authority"
