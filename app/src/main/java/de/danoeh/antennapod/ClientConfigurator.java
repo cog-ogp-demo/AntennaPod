@@ -27,9 +27,11 @@ import de.danoeh.antennapod.storage.database.DBReader;
 import de.danoeh.antennapod.storage.database.PodDBAdapter;
 
 import de.danoeh.antennapod.model.feed.Feed;
+import de.danoeh.antennapod.model.feed.FeedPreferences;
 import de.danoeh.antennapod.ui.notifications.NotificationUtils;
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 
 public class ClientConfigurator {
     private static final String TAG = "ClientConfigurator";
@@ -60,16 +62,33 @@ public class ClientConfigurator {
         BasicAuthorizationInterceptor.setCredentialsProvider(url -> {
             try {
                 String host = new URL(url).getHost();
-                for (Feed feed : DBReader.getFeedList()) {
-                    if (feed.getPreferences() != null
-                            && feed.getDownloadUrl() != null
-                            && new URL(feed.getDownloadUrl()).getHost().equals(host)
-                            && feed.getPreferences().getUsername() != null
-                            && feed.getPreferences().getPassword() != null) {
-                        return feed.getPreferences().getUsername()
-                                + ":" + feed.getPreferences().getPassword();
+                List<Feed> feeds = DBReader.getFeedList();
+                for (Feed feed : feeds) {
+                    FeedPreferences prefs = feed.getPreferences();
+                    if (prefs == null || prefs.getUsername() == null || prefs.getPassword() == null) {
+                        continue;
+                    }
+                    if (url.equals(feed.getImageUrl())) {
+                        return prefs.getUsername() + ":" + prefs.getPassword();
                     }
                 }
+                String hostCredentials = null;
+                for (Feed feed : feeds) {
+                    FeedPreferences prefs = feed.getPreferences();
+                    if (prefs == null || prefs.getUsername() == null || prefs.getPassword() == null) {
+                        continue;
+                    }
+                    if (feed.getDownloadUrl() != null
+                            && new URL(feed.getDownloadUrl()).getHost().equals(host)) {
+                        String creds = prefs.getUsername() + ":" + prefs.getPassword();
+                        if (hostCredentials == null) {
+                            hostCredentials = creds;
+                        } else if (!hostCredentials.equals(creds)) {
+                            return null;
+                        }
+                    }
+                }
+                return hostCredentials;
             } catch (Exception e) {
                 Log.e(TAG, "Error getting credentials for URL: " + url, e);
             }
