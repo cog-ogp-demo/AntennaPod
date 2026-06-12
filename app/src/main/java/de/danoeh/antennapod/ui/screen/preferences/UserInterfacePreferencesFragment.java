@@ -12,6 +12,7 @@ import androidx.preference.Preference;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
 import de.danoeh.antennapod.event.FeedItemEvent;
 import de.danoeh.antennapod.event.PlayerStatusEvent;
 import de.danoeh.antennapod.storage.preferences.UsageStatistics;
@@ -179,7 +180,7 @@ public class UserInterfacePreferencesFragment extends AnimatedPreferenceFragment
         positiveButton.setOnClickListener(v -> {
             if (preferredButtons.size() != 2) {
                 ListView selectionView = dialog.getListView();
-                Snackbar.make(
+                SnackbarHelper.make(
                     selectionView,
                     context.getResources().getString(R.string.pref_compact_notification_buttons_dialog_error_exact),
                     Snackbar.LENGTH_SHORT).show();

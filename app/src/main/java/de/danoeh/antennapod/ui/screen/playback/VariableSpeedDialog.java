@@ -17,6 +17,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.snackbar.Snackbar;
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
 import de.danoeh.antennapod.event.playback.SpeedChangedEvent;
 import de.danoeh.antennapod.playback.base.BuildConfig;
 import de.danoeh.antennapod.playback.service.PlaybackController;
@@ -158,7 +159,7 @@ public class VariableSpeedDialog extends BottomSheetDialogFragment {
     private void addCurrentSpeed() {
         float newSpeed = speedSeekBar.getCurrentSpeed();
         if (selectedSpeeds.contains(newSpeed)) {
-            Snackbar.make(addCurrentSpeedChip,
+            SnackbarHelper.make(addCurrentSpeedChip,
                     getString(R.string.preset_already_exists, newSpeed), Snackbar.LENGTH_LONG).show();
         } else {
             selectedSpeeds.add(newSpeed);

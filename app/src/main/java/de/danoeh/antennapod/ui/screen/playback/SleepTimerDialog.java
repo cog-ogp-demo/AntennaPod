@@ -25,6 +25,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
+
 import de.danoeh.antennapod.model.feed.FeedMedia;
 import de.danoeh.antennapod.ui.common.Keyboard;
 import org.greenrobot.eventbus.EventBus;
@@ -247,7 +249,8 @@ public class SleepTimerDialog extends BottomSheetDialogFragment {
             if (!PlaybackService.isRunning
                     || (!BuildConfig.USE_MEDIA3_PLAYBACK_SERVICE
                             && controller != null && controller.getStatus() != PlayerStatus.PLAYING)) {
-                Snackbar.make(viewBinding.getRoot(), R.string.no_media_playing_label, Snackbar.LENGTH_LONG).show();
+                SnackbarHelper.make(viewBinding.getRoot(),
+                        R.string.no_media_playing_label, Snackbar.LENGTH_LONG).show();
                 return;
             }
             try {
@@ -265,7 +268,8 @@ public class SleepTimerDialog extends BottomSheetDialogFragment {
                 Keyboard.hide(getActivity());
             } catch (NumberFormatException e) {
                 e.printStackTrace();
-                Snackbar.make(viewBinding.getRoot(), R.string.time_dialog_invalid_input, Snackbar.LENGTH_LONG).show();
+                SnackbarHelper.make(viewBinding.getRoot(),
+                        R.string.time_dialog_invalid_input, Snackbar.LENGTH_LONG).show();
             }
         });
         return viewBinding.getRoot();

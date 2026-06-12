@@ -21,6 +21,8 @@ import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 
+import de.danoeh.antennapod.ui.common.SnackbarHelper;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
@@ -188,12 +190,13 @@ public class BugReportFragment extends AnimatedFragment {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                Snackbar.make(viewBinding.getRoot(), R.string.log_file_share_exception, Snackbar.LENGTH_LONG).show();
+                SnackbarHelper.make(viewBinding.getRoot(),
+                        R.string.log_file_share_exception, Snackbar.LENGTH_LONG).show();
             }
         } catch (IOException e) {
             e.printStackTrace();
 
-            Snackbar.make(viewBinding.getRoot(), e.getMessage(), Snackbar.LENGTH_LONG).show();
+            SnackbarHelper.make(viewBinding.getRoot(), e.getMessage(), Snackbar.LENGTH_LONG).show();
         }
     }
 }
