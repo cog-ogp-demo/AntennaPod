@@ -62,6 +62,13 @@ public class UserInterfacePreferencesFragment extends AnimatedPreferenceFragment
                             return true;
                         });
 
+        findPreference(UserPreferences.PREF_SHOW_DAY_OF_WEEK)
+                .setOnPreferenceChangeListener(
+                        (preference, newValue) -> {
+                            EventBus.getDefault().post(new FeedItemEvent(Collections.emptyList(), true));
+                            return true;
+                        });
+
         findPreference(UserPreferences.PREF_HIDDEN_DRAWER_ITEMS)
                 .setOnPreferenceClickListener(preference -> {
                     new DrawerPreferencesDialog(getContext(), null).show();

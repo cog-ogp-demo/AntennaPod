@@ -31,6 +31,12 @@
             android:defaultValue="false"
             android:enabled="true"/>
         <SwitchPreferenceCompat
+            android:title="@string/pref_show_day_of_week_title"
+            android:key="prefShowDayOfWeek"
+            android:summary="@string/pref_show_day_of_week_summary"
+            android:defaultValue="false"
+            android:enabled="true"/>
+        <SwitchPreferenceCompat
             android:defaultValue="false"
             android:key="prefPlaybackTimeRespectsSpeed"
             android:summary="@string/pref_playback_time_respects_speed_sum"
