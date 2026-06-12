@@ -3,6 +3,7 @@ package de.danoeh.antennapod;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.util.Log;
 import de.danoeh.antennapod.net.download.service.episode.autodownload.AutoDownloadManagerImpl;
 import de.danoeh.antennapod.net.download.service.feed.FeedUpdateManagerImpl;
 import de.danoeh.antennapod.net.download.serviceinterface.AutoDownloadManager;
@@ -14,6 +15,7 @@ import de.danoeh.antennapod.storage.preferences.SynchronizationCredentials;
 import de.danoeh.antennapod.storage.preferences.PlaybackPreferences;
 import de.danoeh.antennapod.storage.preferences.SleepTimerPreferences;
 import de.danoeh.antennapod.storage.preferences.UsageStatistics;
+import de.danoeh.antennapod.net.common.BasicAuthorizationInterceptor;
 import de.danoeh.antennapod.net.common.UserAgentInterceptor;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 import de.danoeh.antennapod.net.common.AntennapodHttpClient;
@@ -21,12 +23,18 @@ import de.danoeh.antennapod.net.download.serviceinterface.DownloadServiceInterfa
 import de.danoeh.antennapod.net.download.service.feed.DownloadServiceInterfaceImpl;
 import de.danoeh.antennapod.net.common.NetworkUtils;
 import de.danoeh.antennapod.net.ssl.SslProviderInstaller;
+import de.danoeh.antennapod.storage.database.DBReader;
 import de.danoeh.antennapod.storage.database.PodDBAdapter;
 
+import de.danoeh.antennapod.model.feed.Feed;
+import de.danoeh.antennapod.model.feed.FeedPreferences;
 import de.danoeh.antennapod.ui.notifications.NotificationUtils;
 import java.io.File;
+import java.net.URL;
+import java.util.List;
 
 public class ClientConfigurator {
+    private static final String TAG = "ClientConfigurator";
     private static boolean initialized = false;
 
     public static synchronized void initialize(Context context) {
@@ -51,6 +59,41 @@ public class ClientConfigurator {
         FeedUpdateManager.setInstance(new FeedUpdateManagerImpl());
         AutoDownloadManager.setInstance(new AutoDownloadManagerImpl());
         SynchronizationQueue.setInstance(new SynchronizationQueueImpl(context));
+        BasicAuthorizationInterceptor.setCredentialsProvider(url -> {
+            try {
+                String host = new URL(url).getHost();
+                List<Feed> feeds = DBReader.getFeedList();
+                for (Feed feed : feeds) {
+                    FeedPreferences prefs = feed.getPreferences();
+                    if (prefs == null || prefs.getUsername() == null || prefs.getPassword() == null) {
+                        continue;
+                    }
+                    if (url.equals(feed.getImageUrl())) {
+                        return prefs.getUsername() + ":" + prefs.getPassword();
+                    }
+                }
+                String hostCredentials = null;
+                for (Feed feed : feeds) {
+                    FeedPreferences prefs = feed.getPreferences();
+                    if (prefs == null || prefs.getUsername() == null || prefs.getPassword() == null) {
+                        continue;
+                    }
+                    if (feed.getDownloadUrl() != null
+                            && new URL(feed.getDownloadUrl()).getHost().equals(host)) {
+                        String creds = prefs.getUsername() + ":" + prefs.getPassword();
+                        if (hostCredentials == null) {
+                            hostCredentials = creds;
+                        } else if (!hostCredentials.equals(creds)) {
+                            return null;
+                        }
+                    }
+                }
+                return hostCredentials;
+            } catch (Exception e) {
+                Log.e(TAG, "Error getting credentials for URL: " + url, e);
+            }
+            return null;
+        });
         AntennapodHttpClient.setCacheDirectory(new File(context.getCacheDir(), "okhttp"));
         AntennapodHttpClient.setProxyConfig(UserPreferences.getProxyConfig());
         SleepTimerPreferences.init(context);
