@@ -697,21 +697,20 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
         Log.d(TAG, "onEvent(" + event + ")");
         Snackbar snackbar;
         if (getBottomSheet().getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            snackbar = Snackbar.make(findViewById(android.R.id.content), event.message, Snackbar.LENGTH_LONG);
-            if (findViewById(R.id.bottomNavigationView).getVisibility() == View.VISIBLE) {
-                snackbar.setAnchorView(findViewById(R.id.bottomNavigationView));
-            }
+            snackbar = Snackbar.make(findViewById(R.id.overview_coordinator_layout),
+                    event.message, Snackbar.LENGTH_LONG);
+            snackbar.getView().setElevation(12 * getResources().getDisplayMetrics().density);
         } else {
             snackbar = Snackbar.make(findViewById(R.id.main_content_view), event.message, Snackbar.LENGTH_LONG);
             if (findViewById(R.id.audioplayerFragment).getVisibility() == View.VISIBLE) {
                 snackbar.setAnchorView(findViewById(R.id.audioplayerFragment));
             }
         }
-        snackbar.show();
 
         if (event.action != null) {
             snackbar.setAction(event.actionText, v -> event.action.accept(this));
         }
+        snackbar.show();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
