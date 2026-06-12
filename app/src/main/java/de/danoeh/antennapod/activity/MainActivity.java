@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -118,11 +119,13 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
     private OnBackPressedCallback openDefaultPageBackPressedCallback;
     private final RecyclerView.RecycledViewPool recycledViewPool = new RecyclerView.RecycledViewPool();
     private int lastTheme = 0;
+    private int lastDynamicColor = 0;
     private Insets systemBarInsets = Insets.NONE;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         lastTheme = ThemeSwitcher.getNoTitleTheme(this);
+        lastDynamicColor = getDynamicPrimaryColor();
         setTheme(lastTheme);
         if (savedInstanceState != null) {
             ensureGeneratedViewIdGreaterThan(savedInstanceState.getInt(KEY_GENERATED_VIEW_ID, 0));
@@ -559,6 +562,13 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
         startActivity(new Intent(this, MainActivity.class));
     }
 
+    private int getDynamicPrimaryColor() {
+        if (Build.VERSION.SDK_INT >= 31 && UserPreferences.getIsThemeColorTinted()) {
+            return getColor(android.R.color.system_accent1_500);
+        }
+        return 0;
+    }
+
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -568,7 +578,7 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
         setNavDrawerSize();
 
         @StyleRes int requiredTheme = ThemeSwitcher.getNoTitleTheme(this);
-        if (requiredTheme != lastTheme) {
+        if (requiredTheme != lastTheme || getDynamicPrimaryColor() != lastDynamicColor) {
             restartActivity();
         }
     }
@@ -615,6 +625,7 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
 
         boolean hasBottomNavigation = bottomNavigation != null;
         if (lastTheme != ThemeSwitcher.getNoTitleTheme(this)
+                || getDynamicPrimaryColor() != lastDynamicColor
                 || hasBottomNavigation != UserPreferences.isBottomNavigationEnabled()) {
             restartActivity();
         }
@@ -627,6 +638,7 @@ public class MainActivity extends CastEnabledActivity implements NavigationToolb
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         lastTheme = ThemeSwitcher.getNoTitleTheme(this); // Don't recreate activity when a result is pending
+        lastDynamicColor = getDynamicPrimaryColor();
     }
 
     @Override
