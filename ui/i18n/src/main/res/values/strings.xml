@@ -623,6 +623,10 @@
     <string name="pref_advanced">Advanced</string>
     <string name="pref_display">Display</string>
 
+    <!-- Mini game -->
+    <string name="minigame_label">Pod City (mini game)</string>
+    <string name="minigame_summary">Take a break with a small open-world driving game</string>
+
     <!-- About screen -->
     <string name="about_pref">About</string>
     <string name="antennapod_version">AntennaPod version</string>

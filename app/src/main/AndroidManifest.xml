@@ -279,6 +279,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activity.MiniGameActivity"
+            android:label="@string/minigame_label"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|density|uiMode|keyboard|navigation"
+            android:exported="false"
+            android:theme="@style/Theme.AntennaPod.Splash" />
+
         <provider
             android:authorities="@string/provider_authority"
             android:name="androidx.core.content.FileProvider"

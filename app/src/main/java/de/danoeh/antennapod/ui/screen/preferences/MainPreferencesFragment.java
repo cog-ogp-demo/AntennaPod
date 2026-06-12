@@ -1,5 +1,6 @@
 package de.danoeh.antennapod.ui.screen.preferences;
 
+import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import com.bytehamster.lib.preferencesearch.SearchPreference;
 
 import de.danoeh.antennapod.BuildConfig;
 import de.danoeh.antennapod.R;
+import de.danoeh.antennapod.activity.MiniGameActivity;
 import de.danoeh.antennapod.storage.preferences.UserPreferences;
 import de.danoeh.antennapod.ui.common.IntentUtils;
 import de.danoeh.antennapod.ui.preferences.screen.AnimatedPreferenceFragment;
@@ -34,6 +36,7 @@ public class MainPreferencesFragment extends AnimatedPreferenceFragment {
     private static final String PREF_NOTIFICATION = "notifications";
     private static final String PREF_CONTRIBUTE = "prefContribute";
     private static final String PREF_SCREEN_PARENTAL_CONTROL = "prefScreenParentalControl";
+    private static final String PREF_MINI_GAME = "prefMiniGame";
 
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
@@ -124,6 +127,10 @@ public class MainPreferencesFragment extends AnimatedPreferenceFragment {
             getParentFragmentManager().beginTransaction()
                     .replace(R.id.settingsContainer, new BugReportFragment())
                     .addToBackStack(getString(R.string.report_bug_title)).commit();
+            return true;
+        });
+        findPreference(PREF_MINI_GAME).setOnPreferenceClickListener(preference -> {
+            startActivity(new Intent(getContext(), MiniGameActivity.class));
             return true;
         });
         findPreference(PREF_SCREEN_PARENTAL_CONTROL).setOnPreferenceClickListener(preference -> {

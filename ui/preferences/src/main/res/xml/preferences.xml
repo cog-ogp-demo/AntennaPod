@@ -76,4 +76,10 @@
             android:title="@string/about_pref"
             android:icon="@drawable/ic_info" />
     </PreferenceCategory>
+
+    <Preference
+            android:key="prefMiniGame"
+            android:title="@string/minigame_label"
+            android:summary="@string/minigame_summary"
+            android:icon="@drawable/ic_game_controller" />
 </PreferenceScreen>
