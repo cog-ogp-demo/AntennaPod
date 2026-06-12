@@ -23,7 +23,9 @@ public class DateFormatter {
         GregorianCalendar cal = new GregorianCalendar();
         cal.setTime(date);
         boolean withinLastYear = now.get(Calendar.YEAR) == cal.get(Calendar.YEAR);
-        int format = android.text.format.DateUtils.FORMAT_ABBREV_ALL;
+        int format = android.text.format.DateUtils.FORMAT_ABBREV_ALL
+                | android.text.format.DateUtils.FORMAT_SHOW_WEEKDAY
+                | android.text.format.DateUtils.FORMAT_SHOW_DATE;
         if (withinLastYear) {
             format |= android.text.format.DateUtils.FORMAT_NO_YEAR;
         }
